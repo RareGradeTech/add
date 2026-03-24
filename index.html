@@ -28,6 +28,10 @@
             <h1 class="text-3xl font-black text-gray-900">Admin Registration</h1>
             <p class="text-gray-500 text-sm mt-2">Register a new admin account. Use your work email associated with Google.</p>
         </div>
+
+        <!-- Status message box -->
+        <div id="statusBox" class="hidden mb-6 px-5 py-4 rounded-2xl text-sm font-bold"></div>
+
         <form id="adminRegForm" class="space-y-6">
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Full Name</label>
@@ -41,45 +45,78 @@
                 <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Work Email (Google Account)</label>
                 <input type="email" id="adminEmail" required placeholder="admin@company.com" class="w-full rounded-2xl border-gray-100 bg-gray-50 px-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none border transition-all">
             </div>
-            <button type="submit" class="w-full pill-btn bg-blue-600 text-white font-black py-4 text-sm shadow-lg shadow-blue-500/20">REGISTER ADMIN</button>
+            <button type="submit" id="submitBtn" class="w-full pill-btn bg-blue-600 text-white font-black py-4 text-sm shadow-lg shadow-blue-500/20">REGISTER ADMIN</button>
         </form>
-        <p class="text-center text-xs text-gray-400 mt-6">Already registered? <a href="path/to/dashboard.html" class="text-blue-600 font-bold">Login to Dashboard</a></p>
+        <p class="text-center text-xs text-gray-400 mt-6">Already registered? <a href="dashboard.html" class="text-blue-600 font-bold">Login to Dashboard</a></p>
     </div>
     <script>
-       const firebaseConfig = {
-  apiKey: "AIzaSyCh7Ute6LeSAxcNDEQwZg5m0cA4ujnLCfg",
-  authDomain: "test-17881.firebaseapp.com",
-  projectId: "test-17881",
-  storageBucket: "test-17881.firebasestorage.app",
-  messagingSenderId: "1057428047643",
-  appId: "1:1057428047643:web:f3801c0d933225a5cd35be"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCh7Ute6LeSAxcNDEQwZg5m0cA4ujnLCfg",
+            authDomain: "test-17881.firebaseapp.com",
+            databaseURL: "https://test-17881-default-rtdb.firebaseio.com",
+            projectId: "test-17881",
+            storageBucket: "test-17881.firebasestorage.app",
+            messagingSenderId: "1057428047643",
+            appId: "1:1057428047643:web:f3801c0d933225a5cd35be"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        function showStatus(message, type) {
+            const box = document.getElementById('statusBox');
+            box.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700', 'bg-amber-50', 'text-amber-700');
+            if (type === 'success') box.classList.add('bg-green-50', 'text-green-700');
+            else if (type === 'error') box.classList.add('bg-red-50', 'text-red-700');
+            else box.classList.add('bg-amber-50', 'text-amber-700');
+            box.textContent = message;
+            box.classList.remove('hidden');
+        }
+
         document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = 'REGISTERING...';
+            btn.disabled = true;
+
             const id = `EMP-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
             const name = document.getElementById('adminName').value.trim();
             const role = document.getElementById('adminRole').value.trim();
             const email = document.getElementById('adminEmail').value.trim().toLowerCase();
 
-            // Check if email already exists
-            const snap = await db.ref('employees').orderByChild('email').equalTo(email).once('value');
-            if (snap.exists()) {
-                alert('This email is already registered.');
-                return;
-            }
+            try {
+                // Check if email already exists
+                const snap = await db.ref('employees').orderByChild('email').equalTo(email).once('value');
+                if (snap.exists()) {
+                    showStatus('This email is already registered. Please use a different email or login to the dashboard.', 'warning');
+                    btn.textContent = 'REGISTER ADMIN';
+                    btn.disabled = false;
+                    return;
+                }
 
-            db.ref('employees/' + id).set({
-                id, name, role, email, isAdmin: true,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                alert('Admin registered successfully! You can now login to the dashboard using Google sign-in with this email.');
+                // Save admin to Firebase Realtime Database
+                await db.ref('employees/' + id).set({
+                    id,
+                    name,
+                    role,
+                    email,
+                    isAdmin: true,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showStatus(`✓ Admin registered successfully! Redirecting you to the dashboard...`, 'success');
                 document.getElementById('adminRegForm').reset();
-            }).catch(err => {
-                alert('Registration failed: ' + err.message);
-            });
+
+                // Redirect to dashboard after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                showStatus('Registration failed: ' + err.message, 'error');
+                btn.textContent = 'REGISTER ADMIN';
+                btn.disabled = false;
+            }
         });
     </script>
 </body>
