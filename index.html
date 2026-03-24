@@ -28,8 +28,9 @@
             <h1 class="text-3xl font-black text-gray-900">Admin Registration</h1>
             <p class="text-gray-500 text-sm mt-2">Register a new admin account. Use your work email associated with Google.</p>
         </div>
-        <!-- Status message box -->
+        
         <div id="statusBox" class="hidden mb-6 px-5 py-4 rounded-2xl text-sm font-bold"></div>
+        
         <form id="adminRegForm" class="space-y-6">
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Full Name</label>
@@ -47,30 +48,8 @@
         </form>
         <p class="text-center text-xs text-gray-400 mt-6">Already registered? <a href="dashboard.html" class="text-blue-600 font-bold">Login to Dashboard</a></p>
     </div>
-    <script>
-        // ================================================
-        // 🔥 FIXED VERSION - PERMISSION_DENIED SOLVED 🔥
-        // ================================================
-        // The original error was caused by Firebase Realtime Database security rules.
-        // By default, Firebase blocks all reads/writes for security.
-        //
-        // TO MAKE THIS PAGE WORK:
-        // 1. Go to your Firebase Console → Realtime Database → Rules tab
-        // 2. Replace the existing rules with the code below (for testing/development only):
-        /*
-        {
-          "rules": {
-            ".read": true,
-            ".write": true
-          }
-        }
-        */
-        // 3. Click "Publish". This allows the registration to succeed.
-        //    (In production you should use proper auth rules - this is only for testing)
-        //
-        // After publishing the rules, refresh this page and try registering again.
-        // ================================================
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCh7Ute6LeSAxcNDEQwZg5m0cA4ujnLCfg",
             authDomain: "test-17881.firebaseapp.com",
@@ -80,9 +59,10 @@
             messagingSenderId: "1057428047643",
             appId: "1:1057428047643:web:f3801c0d933225a5cd35be"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
+        
         function showStatus(message, type) {
             const box = document.getElementById('statusBox');
             box.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700', 'bg-amber-50', 'text-amber-700');
@@ -98,12 +78,12 @@
             const btn = document.getElementById('submitBtn');
             btn.textContent = 'REGISTERING...';
             btn.disabled = true;
-
+            
             const id = `EMP-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
             const name = document.getElementById('adminName').value.trim();
             const role = document.getElementById('adminRole').value.trim();
             const email = document.getElementById('adminEmail').value.trim().toLowerCase();
-
+            
             try {
                 // Check if email already exists
                 const snap = await db.ref('employees').orderByChild('email').equalTo(email).once('value');
@@ -113,26 +93,25 @@
                     btn.disabled = false;
                     return;
                 }
-
+                
                 // Save admin to Firebase Realtime Database
                 await db.ref('employees/' + id).set({
-                    id,
-                    name,
-                    role,
-                    email,
+                    id: id,
+                    name: name,
+                    role: role,
+                    email: email,
                     isAdmin: true,
                     createdAt: firebase.database.ServerValue.TIMESTAMP
                 });
-
+                
                 showStatus(`✓ Admin registered successfully! Redirecting you to the dashboard...`, 'success');
                 document.getElementById('adminRegForm').reset();
-
+                
                 // Redirect to dashboard after 2 seconds
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
                 }, 2000);
             } catch (err) {
-                console.error(err);
                 showStatus('Registration failed: ' + err.message, 'error');
                 btn.textContent = 'REGISTER ADMIN';
                 btn.disabled = false;
