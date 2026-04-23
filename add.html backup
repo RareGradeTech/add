@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration | Attendance Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { background-color: #f3f4f6; }
+        .glass-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .pill-btn { border-radius: 9999px; transition: all 0.3s ease; transform: scale(1); }
+        .pill-btn:hover { transform: translateY(-1px); filter: brightness(110%); }
+        .pill-btn:active { transform: scale(0.96); }
+    </style>
+</head>
+<body class="text-gray-800 flex items-center justify-center min-h-screen">
+    <div class="glass-card w-full max-w-md p-10">
+        <div class="text-center mb-8">
+            <img src="https://i.postimg.cc/05BVVkbb/LOGO-removebg-preview.png" alt="Logo" class="h-12 w-auto mx-auto mb-4">
+            <h1 class="text-3xl font-black text-gray-900">Admin Registration</h1>
+            <p class="text-gray-500 text-sm mt-2">Verify your identity with Google first to register as an admin.</p>
+        </div>
+        
+        <div id="statusBox" class="hidden mb-6 px-5 py-4 rounded-2xl text-sm font-bold"></div>
+        
+        <div id="authSection" class="text-center">
+            <button onclick="authenticateAdmin()" class="w-full pill-btn bg-white border-2 border-gray-200 text-gray-700 font-bold py-4 text-sm flex items-center justify-center gap-3 hover:bg-gray-50">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+                VERIFY WITH GOOGLE
+            </button>
+        </div>
 
+        <form id="adminRegForm" class="hidden space-y-6">
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Full Name</label>
+                <input type="text" id="adminName" required placeholder="e.g. Jane Smith" class="w-full rounded-2xl border-gray-100 bg-gray-50 px-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none border transition-all">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Job Title / Role</label>
+                <input type="text" id="adminRole" required placeholder="e.g. HR Manager" class="w-full rounded-2xl border-gray-100 bg-gray-50 px-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none border transition-all">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase ml-2 mb-2">Work Email (Verified)</label>
+                <input type="email" id="adminEmail" readonly class="w-full rounded-2xl border-gray-100 bg-gray-100 px-6 py-4 text-sm outline-none border cursor-not-allowed text-gray-500">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full pill-btn bg-blue-600 text-white font-black py-4 text-sm shadow-lg shadow-blue-500/20">COMPLETE REGISTRATION</button>
+        </form>
+
+        <p class="text-center text-xs text-gray-400 mt-6">Already registered? <a href="https://add.raregradetech.co.za/" class="text-blue-600 font-bold">Login to Dashboard</a></p>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCh7Ute6LeSAxcNDEQwZg5m0cA4ujnLCfg",
+            authDomain: "test-17881.firebaseapp.com",
+            databaseURL: "https://test-17881-default-rtdb.firebaseio.com",
+            projectId: "test-17881",
+            storageBucket: "test-17881.firebasestorage.app",
+            messagingSenderId: "1057428047643",
+            appId: "1:1057428047643:web:f3801c0d933225a5cd35be"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        function showStatus(message, type) {
+            const box = document.getElementById('statusBox');
+            box.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700', 'bg-amber-50', 'text-amber-700');
+            if (type === 'success') box.classList.add('bg-green-50', 'text-green-700');
+            else if (type === 'error') box.classList.add('bg-red-50', 'text-red-700');
+            else box.classList.add('bg-amber-50', 'text-amber-700');
+            box.textContent = message;
+            box.classList.remove('hidden');
+        }
+
+        // Authentication step
+        async function authenticateAdmin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Set the email and reveal form
+                document.getElementById('adminEmail').value = user.email;
+                document.getElementById('adminName').value = user.displayName || "";
+                
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('adminRegForm').classList.remove('hidden');
+                showStatus('Identity verified. Please complete your details.', 'success');
+            } catch (error) {
+                showStatus('Authentication failed: ' + error.message, 'error');
+            }
+        }
+
+        document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = 'REGISTERING...';
+            btn.disabled = true;
+            
+            const id = `EMP-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
+            const name = document.getElementById('adminName').value.trim();
+            const role = document.getElementById('adminRole').value.trim();
+            const email = document.getElementById('adminEmail').value;
+            
+            try {
+                // Check if email already exists
+                const snap = await db.ref('employees').orderByChild('email').equalTo(email).once('value');
+                if (snap.exists()) {
+                    showStatus('This email is already registered.', 'warning');
+                    btn.textContent = 'COMPLETE REGISTRATION';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Save admin to Firebase Realtime Database
+                await db.ref('employees/' + id).set({
+                    id: id,
+                    uid: auth.currentUser.uid,
+                    name: name,
+                    role: role,
+                    email: email,
+                    isAdmin: true,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                showStatus(`✓ Admin registered successfully! Redirecting...`, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'https://add.raregradetech.co.za/';
+                }, 2000);
+            } catch (err) {
+                showStatus('Registration failed: ' + err.message, 'error');
+                btn.textContent = 'COMPLETE REGISTRATION';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
