@@ -12,80 +12,46 @@
   <script src="https://unpkg.com/feather-icons"></script>
 
   <style>
-    /* ══════════════════════════════════════════
-       THEME SYSTEM
-    ══════════════════════════════════════════ */
     :root {
-        --bg-main: #FFFFFF;
-        --bg-sidebar: #F0F4F9;
-        --bg-hover: #E1E5EA;
-        --text-primary: #1F1F1F;
-        --text-secondary: #444746;
-        --text-muted: #8E918F;
-        --border-color: #E3E3E3;
-        --brand-blue: #0A56D9;
-        --shadow-color: rgba(0,0,0,0.08);
-        --radius-pill: 32px;
-        --radius-card: 24px;
-        --ui-overlay-bg: rgba(255, 255, 255, 0.85);
+        --bg-main: #FFFFFF; --bg-sidebar: #F0F4F9; --bg-hover: #E1E5EA;
+        --text-primary: #1F1F1F; --text-secondary: #444746; --text-muted: #8E918F;
+        --border-color: #E3E3E3; --brand-blue: #0A56D9; --shadow-color: rgba(0,0,0,0.08);
+        --radius-pill: 32px; --radius-card: 24px; --ui-overlay-bg: rgba(255, 255, 255, 0.85);
     }
-
     [data-theme="dark"] {
-        --bg-main: #131314;
-        --bg-sidebar: #1E1F20;
-        --bg-hover: #333537;
-        --text-primary: #E3E3E3;
-        --text-secondary: #C4C7C5;
-        --text-muted: #8E918F;
-        --border-color: #444746;
-        --brand-blue: #A8C7FA;
-        --shadow-color: rgba(0,0,0,0.3);
+        --bg-main: #131314; --bg-sidebar: #1E1F20; --bg-hover: #333537;
+        --text-primary: #E3E3E3; --text-secondary: #C4C7C5; --text-muted: #8E918F;
+        --border-color: #444746; --brand-blue: #A8C7FA; --shadow-color: rgba(0,0,0,0.3);
         --ui-overlay-bg: rgba(30, 31, 32, 0.85);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg-main); color: var(--text-primary); height: 100svh; display: flex; overflow: hidden; transition: background 0.3s ease, color 0.3s ease; }
 
-    /* ════ SIDEBAR ════ */
+    /* SIDEBAR */
     .sidebar { width: 300px; background: var(--bg-sidebar); display: flex; flex-direction: column; padding: 16px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; border-right: 1px solid var(--border-color); }
     .sidebar-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; padding-left: 12px; }
-    
-    .nav-btn { display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 12px; width: 100%; text-align: left; border-radius: 12px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; margin-bottom: 4px; }
+    .nav-btn { display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 12px; width: 100%; text-align: left; border-radius: 12px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; margin-bottom: 4px; text-decoration: none; }
     .nav-btn:hover, .nav-btn.active { background: var(--bg-hover); }
     .nav-btn.active { color: var(--brand-blue); font-weight: 600; }
 
-    /* ════ MAIN CONTENT WRAPPER ════ */
+    /* HEADER & WRAPPER */
     .main-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
-    
-    /* FLOATING HEADER */
     .header { height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 100; pointer-events: none; }
     .header * { pointer-events: auto; }
-    
-    .menu-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); display: none; padding: 10px; border-radius: 50%; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
-    .theme-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); padding: 10px; border-radius: 50%; display: flex; transition: all 0.2s; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
+    .menu-toggle, .theme-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); padding: 10px; border-radius: 50%; display: flex; transition: all 0.2s; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
+    .menu-toggle { display: none; }
 
-    /* ════ PAGES LAYER ════ */
-    .view-page { position: absolute; inset: 0; width: 100%; height: 100%; display: none; overflow: hidden; }
-    .view-page.active { display: block; }
-
-    /* FULLSCREEN CAMERA WORKSPACE */
+    /* WORKSPACE */
     .workspace { position: relative; width: 100%; height: 100%; background: #000; }
-    #webcam, #enrollWebcam { width: 100%; height: 100%; object-fit: cover; }
+    #webcam { width: 100%; height: 100%; object-fit: cover; }
     .detectionCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
-    
     .status-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(0,0,0,0.85); color: white; z-index: 3; text-align: center; padding: 20px; backdrop-filter: blur(12px); }
 
-    /* ════ ENROLLMENT INTERFACE OVERLAY ════ */
-    .enrollment-panel { position: absolute; top: 80px; left: 24px; background: var(--ui-overlay-bg); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; width: calc(100% - 48px); max-width: 340px; z-index: 100; backdrop-filter: blur(12px); box-shadow: 0 10px 32px var(--shadow-color); display: flex; flex-direction: column; gap: 12px; }
-    .enrollment-panel h3 { font-size: 1.1rem; font-weight: 600; }
-    .input-field { background: var(--bg-main); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px; font-family: inherit; color: var(--text-primary); font-size: 0.95rem; width: 100%; outline: none; }
-    
-    /* FLOATING CONTROLS */
+    /* CONTROLS */
     .control-panel { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--ui-overlay-bg); padding: 12px 24px; border-radius: var(--radius-pill); border: 1px solid var(--border-color); display: flex; gap: 16px; box-shadow: 0 10px 32px var(--shadow-color); z-index: 100; backdrop-filter: blur(8px); }
-    
     .btn { display: flex; align-items: center; gap: 10px; background: var(--brand-blue); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-pill); font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(10, 86, 217, 0.4); }
-    .btn:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn:disabled { background: var(--text-muted); cursor: not-allowed; }
     .btn.stop { background: #E63946; }
 
     .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; }
@@ -102,8 +68,8 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-title" style="margin-top: 20px;">Steward Modules</div>
-    <button class="nav-btn active" id="navDetectionBtn"><i data-feather="eye"></i> Object & Face Detection</button>
-    <button class="nav-btn" id="navEnrollBtn"><i data-feather="user-plus"></i> Face Identity Registration</button>
+    <a href="index.html" class="nav-btn active"><i data-feather="eye"></i> Object & Face Detection</a>
+    <a href="enroll.html" class="nav-btn"><i data-feather="user-plus"></i> Face Identity Registration</a>
     
     <div style="flex: 1;"></div>
     <div style="padding: 12px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
@@ -118,41 +84,25 @@
       <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
     </header>
 
-    <div id="pageDetection" class="view-page active">
-      <div class="workspace">
-        <div class="status-overlay" id="statusOverlay">
-          <div class="loader"></div>
-          <h2>Initializing Biometric Engines...</h2>
-          <p>Compiling computer vision models and local verification matrix systems.</p>
-        </div>
-        <video id="webcam" autoplay playsinline></video>
-        <canvas id="outputCanvas" class="detectionCanvas"></canvas>
+    <div class="workspace">
+      <div class="status-overlay" id="statusOverlay">
+        <div class="loader"></div>
+        <h2>Initializing Biometric Engines...</h2>
+        <p>Compiling computer vision models and local verification matrix systems.</p>
       </div>
-      <div class="control-panel">
-        <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
-      </div>
+      <video id="webcam" autoplay playsinline></video>
+      <canvas id="outputCanvas" class="detectionCanvas"></canvas>
     </div>
-
-    <div id="pageEnrollment" class="view-page">
-      <div class="workspace">
-        <div class="enrollment-panel">
-          <h3>Register Identity</h3>
-          <p style="font-size: 0.85rem; color: var(--text-secondary)">Align face in scanner sight framework, map identity handle, and execute synchronization.</p>
-          <input type="text" id="identityNameInput" class="input-field" placeholder="Full Name or Identifier" />
-          <button class="btn" id="captureIdentityBtn" style="width:100%; justify-content: center;"><i data-feather="user-check"></i> Commit Identity</button>
-        </div>
-        <video id="enrollWebcam" autoplay playsinline></video>
-        <canvas id="enrollCanvas" class="detectionCanvas"></canvas>
-      </div>
+    
+    <div class="control-panel">
+      <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
     </div>
-
   </main>
 
   <script type="module">
-    // ════ 1. FIREBASE ARCHITECTURE INFRASTRUCTURE ════
+    // ════ FIREBASE CONFIG ════
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCh7Ute6LeSAxcNDEQwZg5m0cA4ujnLCfg",
@@ -166,67 +116,29 @@
     
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const remoteConfig = getRemoteConfig(app);
-    remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-    // ════ 2. COGNITIVE ENGINE PIPELINES ════
+    // ════ MEDIAPIPE IMPORTS ════
     import { ObjectDetector, FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
     feather.replace();
 
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
-    const navDetectionBtn = document.getElementById('navDetectionBtn');
-    const navEnrollBtn = document.getElementById('navEnrollBtn');
-    const pageDetection = document.getElementById('pageDetection');
-    const pageEnrollment = document.getElementById('pageEnrollment');
-
     let objectDetector, faceDetector;
     let webcamRunning = false;
-    let currentMode = "detection";
     let lastVideoTime = -1;
     let registeredIdentities = {}; 
-    let activeFaceMetadata = null; 
 
-    // Synchronize Identity Profiles from Realtime DB
+    // Sync DB Profiles
     onValue(ref(db, 'biometric_profiles'), (snapshot) => {
-      if(snapshot.exists()) {
-        registeredIdentities = snapshot.val();
-      }
+      if(snapshot.exists()) registeredIdentities = snapshot.val();
     });
 
-    // Clean Workspace Router State Machines
-    function switchView(target) {
-      stopCameraAll();
-      document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      
-      if(target === 'detection') {
-        pageDetection.classList.add('active');
-        navDetectionBtn.classList.add('active');
-        currentMode = "detection";
-      } else {
-        pageEnrollment.classList.add('active');
-        navEnrollBtn.classList.add('active');
-        currentMode = "enrollment";
-        startEnrollmentCamera();
-      }
-      sidebar.classList.remove('open');
-    }
-
-    navDetectionBtn.addEventListener('click', () => switchView('detection'));
-    navEnrollBtn.addEventListener('click', () => switchView('enrollment'));
-
-    // Mobile Sidebar Click-Outside Closure Handling Rules
+    // Sidebar & Theme Handling
     menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
     document.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-          sidebar.classList.remove('open');
-        }
-      }
+      if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) sidebar.classList.remove('open');
     });
 
-    // UI Dark Aesthetics Dynamic Switching Rule
     document.getElementById('themeToggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
@@ -234,34 +146,28 @@
       feather.replace();
     });
 
-    // Framework Assembly Engine
+    // Initialize Vision AI
     async function initializeComputerVision() {
       try {
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
-        
         objectDetector = await ObjectDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`, delegate: "GPU" },
           scoreThreshold: 0.5, runningMode: "VIDEO"
         });
-
         faceDetector = await FaceDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`, delegate: "GPU" },
           runningMode: "VIDEO"
         });
-        
         document.getElementById("statusOverlay").style.display = "none";
         document.getElementById("toggleCameraBtn").disabled = false;
-      } catch (err) {
-        console.error("Vision framework failure:", err);
-      }
+      } catch (err) { console.error("Framework failure:", err); }
     }
     initializeComputerVision();
 
-    // ════ 3. BIOMETRIC STRUCTURAL ALGORITHMS ════
+    // Biometric Logic
     function extractFaceVector(face, wWidth, wHeight) {
       if (!face || !face.keypoints || face.keypoints.length === 0) return null;
       const { originX, originY, width, height } = face.boundingBox;
-      
       const normOriginX = originX / wWidth;
       const normOriginY = originY / wHeight;
       const normWidth = width / wWidth;
@@ -269,9 +175,7 @@
       
       const vector = [];
       face.keypoints.forEach(kp => {
-        const relativeX = (kp.x - normOriginX) / normWidth;
-        const relativeY = (kp.y - normOriginY) / normHeight;
-        vector.push(relativeX, relativeY);
+        vector.push((kp.x - normOriginX) / normWidth, (kp.y - normOriginY) / normHeight);
       });
       return vector;
     }
@@ -279,216 +183,79 @@
     function calculateEuclideanDistance(v1, v2) {
       if (!v1 || !v2 || v1.length !== v2.length) return Infinity;
       let sum = 0;
-      for (let i = 0; i < v1.length; i++) {
-        sum += Math.pow(v1[i] - v2[i], 2);
-      }
+      for (let i = 0; i < v1.length; i++) sum += Math.pow(v1[i] - v2[i], 2);
       return Math.sqrt(sum);
     }
 
-    // ════ SCREEN CONTROLS & LIFECYCLES ════
+    // Camera Lifecycle
     const video = document.getElementById("webcam");
+    const canvasCtx = document.getElementById("outputCanvas").getContext("2d");
     const canvasElement = document.getElementById("outputCanvas");
-    const canvasCtx = canvasElement.getContext("2d");
     const toggleBtn = document.getElementById("toggleCameraBtn");
 
     toggleBtn.addEventListener('click', () => {
-      if (webcamRunning) stopCameraAll(); else startMainCamera();
+      if (webcamRunning) stopCamera(); else startCamera();
     });
 
-    async function startMainCamera() {
+    async function startCamera() {
       webcamRunning = true;
       toggleBtn.innerHTML = '<i data-feather="stop-circle"></i> Pause Matrix';
-      toggleBtn.classList.add('stop');
-      feather.replace();
-
+      toggleBtn.classList.add('stop'); feather.replace();
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         video.srcObject = stream;
-        video.style.display = "block";
-        video.addEventListener("loadeddata", renderDetectionLoop);
-      } catch (e) { stopCameraAll(); }
+        video.addEventListener("loadeddata", renderLoop);
+      } catch (e) { stopCamera(); }
     }
 
-    function stopCameraAll() {
+    function stopCamera() {
       webcamRunning = false;
       toggleBtn.innerHTML = '<i data-feather="camera"></i> Start Lens';
-      toggleBtn.classList.remove('stop');
-      feather.replace();
-
-      [video, document.getElementById('enrollWebcam')].forEach(vid => {
-        if (vid.srcObject) {
-          vid.srcObject.getTracks().forEach(track => track.stop());
-          vid.srcObject = null;
-        }
-        vid.style.display = "none";
-      });
+      toggleBtn.classList.remove('stop'); feather.replace();
+      if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     }
 
-    // Main Run Tracker Loop
-    function renderDetectionLoop() {
+    function renderLoop() {
       if (!webcamRunning) return;
-      canvasElement.width = video.videoWidth;
-      canvasElement.height = video.videoHeight;
-
+      canvasElement.width = video.videoWidth; canvasElement.height = video.videoHeight;
       if (video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
+        
         const objects = objectDetector.detectForVideo(video, performance.now());
-        drawObjects(objects.detections);
-
         const faces = faceDetector.detectForVideo(video, performance.now());
-        drawFaces(faces.detections);
-      }
-      requestAnimationFrame(renderDetectionLoop);
-    }
-
-    function drawObjects(detections) {
-      for (let detection of detections) {
-        if(detection.categories[0].categoryName === "person") continue; 
-        const { originX: x, originY: y, width: w, height: h } = detection.boundingBox;
-        renderBoundingBox(x, y, w, h, `${detection.categories[0].categoryName} (${Math.round(detection.categories[0].score * 100)}%)`, "#A8C7FA");
-      }
-    }
-
-    function drawFaces(detections) {
-      for (let face of detections) {
-        const { originX: x, originY: y, width: w, height: h } = face.boundingBox;
         
-        let identityLabel = "Unknown Individual";
-        let markerColor = "#E63946"; 
-        
-        if (face.keypoints) {
-          const liveVector = extractFaceVector(face, video.videoWidth, video.videoHeight);
-          let minimumDistance = Infinity;
-          let verifiedMatchName = "";
-          
-          for (let key in registeredIdentities) {
-            const candidate = registeredIdentities[key];
-            if (candidate.vector) {
-              const distance = calculateEuclideanDistance(liveVector, candidate.vector);
-              if (distance < minimumDistance) {
-                minimumDistance = distance;
-                verifiedMatchName = candidate.name;
-              }
-            }
-          }
-          
-          // Strict Structural Geometry Delta Validation Tolerance Bounds Threshold
-          if (minimumDistance < 0.16) {
-            identityLabel = verifiedMatchName;
-            markerColor = "#34A853"; 
-          }
+        for (let d of objects.detections) {
+          if(d.categories[0].categoryName === "person") continue; 
+          renderBox(d.boundingBox, `${d.categories[0].categoryName} (${Math.round(d.categories[0].score * 100)}%)`, "#A8C7FA");
         }
         
-        renderBoundingBox(x, y, w, h, identityLabel, markerColor);
+        for (let f of faces.detections) {
+          let label = "Unknown Individual", color = "#E63946"; 
+          if (f.keypoints) {
+            const liveVec = extractFaceVector(f, video.videoWidth, video.videoHeight);
+            let minDist = Infinity, matchName = "";
+            for (let k in registeredIdentities) {
+              const dist = calculateEuclideanDistance(liveVec, registeredIdentities[k].vector);
+              if (dist < minDist) { minDist = dist; matchName = registeredIdentities[k].name; }
+            }
+            if (minDist < 0.16) { label = matchName; color = "#34A853"; }
+          }
+          renderBox(f.boundingBox, label, color);
+        }
       }
+      requestAnimationFrame(renderLoop);
     }
 
-    function renderBoundingBox(x, y, w, h, label, color) {
-      canvasCtx.beginPath();
-      canvasCtx.lineWidth = 4;
-      canvasCtx.strokeStyle = color;
-      canvasCtx.rect(x, y, w, h);
-      canvasCtx.stroke();
-
-      canvasCtx.fillStyle = color;
-      canvasCtx.font = "600 15px 'DM Sans', sans-serif";
+    function renderBox(box, label, color) {
+      const { originX: x, originY: y, width: w, height: h } = box;
+      canvasCtx.beginPath(); canvasCtx.lineWidth = 4; canvasCtx.strokeStyle = color;
+      canvasCtx.rect(x, y, w, h); canvasCtx.stroke();
+      canvasCtx.fillStyle = color; canvasCtx.font = "600 15px 'DM Sans', sans-serif";
       canvasCtx.fillRect(x, y - 28, canvasCtx.measureText(label).width + 16, 28);
-
-      canvasCtx.fillStyle = "#131314";
-      canvasCtx.fillText(label, x + 8, y - 9);
+      canvasCtx.fillStyle = "#131314"; canvasCtx.fillText(label, x + 8, y - 9);
     }
-
-    // ════ ENROLLMENT REALTIME SCREEN TRACKING FRAMEWORK ════
-    const enrollVideo = document.getElementById("enrollWebcam");
-    const enrollCanvas = document.getElementById("enrollCanvas");
-    const enrollCtx = enrollCanvas.getContext("2d");
-    const captureBtn = document.getElementById("captureIdentityBtn");
-    const identityInput = document.getElementById("identityNameInput");
-
-    async function startEnrollmentCamera() {
-      webcamRunning = true;
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        enrollVideo.srcObject = stream;
-        enrollVideo.style.display = "block";
-        enrollVideo.addEventListener("loadeddata", renderEnrollmentLoop);
-      } catch(e) { console.error("Enrollment optical feed hardware issue:", e); }
-    }
-
-    function renderEnrollmentLoop() {
-      if (!webcamRunning || currentMode !== "enrollment") return;
-      enrollCanvas.width = enrollVideo.videoWidth;
-      enrollCanvas.height = enrollVideo.videoHeight;
-      enrollCtx.clearRect(0, 0, enrollCanvas.width, enrollCanvas.height);
-      
-      const faces = faceDetector.detectForVideo(enrollVideo, performance.now());
-      
-      if(faces.detections && faces.detections.length > 0) {
-        const face = faces.detections[0];
-        activeFaceMetadata = face; 
-        const { originX: x, originY: y, width: w, height: h } = face.boundingBox;
-        
-        // Projected High Fidelity UI Scanner Framing Indicators
-        enrollCtx.strokeStyle = "#00F5D4"; 
-        enrollCtx.lineWidth = 4;
-        const cornerBracketSize = Math.min(w, h) * 0.22;
-        
-        // Top Left Bracket Bounds
-        enrollCtx.beginPath(); enrollCtx.moveTo(x, y + cornerBracketSize); enrollCtx.lineTo(x, y); enrollCtx.lineTo(x + cornerBracketSize, y); enrollCtx.stroke();
-        // Top Right Bracket Bounds
-        enrollCtx.beginPath(); enrollCtx.moveTo(x + w - cornerBracketSize, y); enrollCtx.lineTo(x + w, y); enrollCtx.lineTo(x + w, y + cornerBracketSize); enrollCtx.stroke();
-        // Bottom Left Bracket Bounds
-        enrollCtx.beginPath(); enrollCtx.moveTo(x, y + h - cornerBracketSize); enrollCtx.lineTo(x, y + h); enrollCtx.lineTo(x + cornerBracketSize, y + h); enrollCtx.stroke();
-        // Bottom Right Bracket Bounds
-        enrollCtx.beginPath(); enrollCtx.moveTo(x + w - cornerBracketSize, y + h); enrollCtx.lineTo(x + w, y + h); enrollCtx.lineTo(x + w, y + h - cornerBracketSize); enrollCtx.stroke();
-
-        // Laser Scan Intercept Bar
-        const clockTimeIndex = (performance.now() % 2000) / 2000;
-        const beamY = y + (h * clockTimeIndex);
-        
-        enrollCtx.beginPath();
-        enrollCtx.strokeStyle = "rgba(0, 245, 212, 0.42)";
-        enrollCtx.lineWidth = 2;
-        enrollCtx.moveTo(x, beamY);
-        enrollCtx.lineTo(x + w, beamY);
-        enrollCtx.stroke();
-        
-        enrollCtx.fillStyle = "rgba(0, 245, 212, 0.04)";
-        enrollCtx.fillRect(x, y, w, h);
-      } else {
-        activeFaceMetadata = null;
-      }
-      requestAnimationFrame(renderEnrollmentLoop);
-    }
-
-    // Capture and Process Structural Matrix Data Payload
-    captureBtn.addEventListener('click', async () => {
-      const name = identityInput.value.trim();
-      if(!name) return alert("Please map an identity identifier description.");
-      if(!activeFaceMetadata) return alert("Align target face matrix directly inside the frame.");
-
-      const geometryVector = extractFaceVector(activeFaceMetadata, enrollVideo.videoWidth, enrollVideo.videoHeight);
-      if(!geometryVector) return alert("Biometric features failed clarity verification steps. Try again.");
-
-      captureBtn.disabled = true;
-      captureBtn.innerText = "Synchronizing Framework Structural Vectors...";
-
-      const newFaceRef = push(ref(db, 'biometric_profiles'));
-      await set(newFaceRef, {
-        name: name,
-        vector: geometryVector,
-        timestamp: serverTimestamp()
-      });
-
-      identityInput.value = "";
-      captureBtn.disabled = false;
-      captureBtn.innerText = "Commit Identity";
-      alert(`Biometric node verified & synced for individual: "${name}"`);
-      switchView('detection');
-    });
   </script>
 </body>
 </html>
