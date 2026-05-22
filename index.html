@@ -73,7 +73,7 @@
     #webcam, #enrollWebcam { width: 100%; height: 100%; object-fit: cover; }
     .detectionCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
     
-    .status-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(0,0,0,0.75); color: white; z-index: 3; text-align: center; padding: 20px; backdrop-filter: blur(12px); }
+    .status-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(0,0,0,0.85); color: white; z-index: 3; text-align: center; padding: 20px; backdrop-filter: blur(12px); }
 
     /* ════ ENROLLMENT INTERFACE OVERLAY ════ */
     .enrollment-panel { position: absolute; top: 80px; left: 24px; background: var(--ui-overlay-bg); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; width: calc(100% - 48px); max-width: 340px; z-index: 100; backdrop-filter: blur(12px); box-shadow: 0 10px 32px var(--shadow-color); display: flex; flex-direction: column; gap: 12px; }
@@ -122,8 +122,8 @@
       <div class="workspace">
         <div class="status-overlay" id="statusOverlay">
           <div class="loader"></div>
-          <h2>Initializing Computer Vision...</h2>
-          <p>Setting up detection ecosystems and data synchronization pipelines.</p>
+          <h2>Initializing Biometric Engines...</h2>
+          <p>Compiling computer vision models and local verification matrix systems.</p>
         </div>
         <video id="webcam" autoplay playsinline></video>
         <canvas id="outputCanvas" class="detectionCanvas"></canvas>
@@ -137,7 +137,7 @@
       <div class="workspace">
         <div class="enrollment-panel">
           <h3>Register Identity</h3>
-          <p style="font-size: 0.85rem; color: var(--text-secondary)">Align face in center frame, enter identity name, and submit to database.</p>
+          <p style="font-size: 0.85rem; color: var(--text-secondary)">Align face in scanner sight framework, map identity handle, and execute synchronization.</p>
           <input type="text" id="identityNameInput" class="input-field" placeholder="Full Name or Identifier" />
           <button class="btn" id="captureIdentityBtn" style="width:100%; justify-content: center;"><i data-feather="user-check"></i> Commit Identity</button>
         </div>
@@ -149,7 +149,7 @@
   </main>
 
   <script type="module">
-    // ════ 1. FIREBASE ARCHITECTURE ════
+    // ════ 1. FIREBASE ARCHITECTURE INFRASTRUCTURE ════
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, push, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
@@ -169,23 +169,10 @@
     const remoteConfig = getRemoteConfig(app);
     remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-    // ════ 2. GROK SYSTEM LINKAGES ════
-    const API_BASE = "https://api.x.ai/v1";
-    let XAI_API_KEY = "";
-    
-    async function loadKey() { 
-      try { 
-        await fetchAndActivate(remoteConfig); 
-        XAI_API_KEY = getValue(remoteConfig, 'xai_api_key').asString(); 
-      } catch(e) { console.error("Remote Config integration fault:", e); } 
-    }
-    loadKey();
-
-    // ════ 3. ADVANCED COMPUTER VISION ENGINE (MEDIAPIPE) ════
+    // ════ 2. COGNITIVE ENGINE PIPELINES ════
     import { ObjectDetector, FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
     feather.replace();
 
-    // UI & Routing Elements
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const navDetectionBtn = document.getElementById('navDetectionBtn');
@@ -193,22 +180,21 @@
     const pageDetection = document.getElementById('pageDetection');
     const pageEnrollment = document.getElementById('pageEnrollment');
 
-    // Operational Global Variables
     let objectDetector, faceDetector;
     let webcamRunning = false;
-    let currentMode = "detection"; // "detection" or "enrollment"
+    let currentMode = "detection";
     let lastVideoTime = -1;
     let registeredIdentities = {}; 
-    let activeFaceBoundingBox = null; // Stores last tracked face tracking information
+    let activeFaceMetadata = null; 
 
-    // Sync Identities from Realtime DB
-    onValue(ref(db, 'registered_faces'), (snapshot) => {
+    // Synchronize Identity Profiles from Realtime DB
+    onValue(ref(db, 'biometric_profiles'), (snapshot) => {
       if(snapshot.exists()) {
         registeredIdentities = snapshot.val();
       }
     });
 
-    // View Switching State Management Logic
+    // Clean Workspace Router State Machines
     function switchView(target) {
       stopCameraAll();
       document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
@@ -230,13 +216,17 @@
     navDetectionBtn.addEventListener('click', () => switchView('detection'));
     navEnrollBtn.addEventListener('click', () => switchView('enrollment'));
 
-    // Responsive Outside Click Handling for Sidebar Control
+    // Mobile Sidebar Click-Outside Closure Handling Rules
     menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
     document.addEventListener('click', (e) => {
-      if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) sidebar.classList.remove('open');
+      if (window.innerWidth <= 768) {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+          sidebar.classList.remove('open');
+        }
+      }
     });
 
-    // Dark/Light Global Aesthetics System
+    // UI Dark Aesthetics Dynamic Switching Rule
     document.getElementById('themeToggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
@@ -244,18 +234,16 @@
       feather.replace();
     });
 
-    // Pipeline Engine Initialization
+    // Framework Assembly Engine
     async function initializeComputerVision() {
       try {
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
         
-        // Load Objects Engine
         objectDetector = await ObjectDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`, delegate: "GPU" },
           scoreThreshold: 0.5, runningMode: "VIDEO"
         });
 
-        // Load Spatial Face Localization Engine
         faceDetector = await FaceDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`, delegate: "GPU" },
           runningMode: "VIDEO"
@@ -264,12 +252,40 @@
         document.getElementById("statusOverlay").style.display = "none";
         document.getElementById("toggleCameraBtn").disabled = false;
       } catch (err) {
-        console.error("Framework compilation error:", err);
+        console.error("Vision framework failure:", err);
       }
     }
     initializeComputerVision();
 
-    // ════ MAIN DETECTION RUNTIME LOOP ════
+    // ════ 3. BIOMETRIC STRUCTURAL ALGORITHMS ════
+    function extractFaceVector(face, wWidth, wHeight) {
+      if (!face || !face.keypoints || face.keypoints.length === 0) return null;
+      const { originX, originY, width, height } = face.boundingBox;
+      
+      const normOriginX = originX / wWidth;
+      const normOriginY = originY / wHeight;
+      const normWidth = width / wWidth;
+      const normHeight = height / wHeight;
+      
+      const vector = [];
+      face.keypoints.forEach(kp => {
+        const relativeX = (kp.x - normOriginX) / normWidth;
+        const relativeY = (kp.y - normOriginY) / normHeight;
+        vector.push(relativeX, relativeY);
+      });
+      return vector;
+    }
+
+    function calculateEuclideanDistance(v1, v2) {
+      if (!v1 || !v2 || v1.length !== v2.length) return Infinity;
+      let sum = 0;
+      for (let i = 0; i < v1.length; i++) {
+        sum += Math.pow(v1[i] - v2[i], 2);
+      }
+      return Math.sqrt(sum);
+    }
+
+    // ════ SCREEN CONTROLS & LIFECYCLES ════
     const video = document.getElementById("webcam");
     const canvasElement = document.getElementById("outputCanvas");
     const canvasCtx = canvasElement.getContext("2d");
@@ -309,6 +325,7 @@
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     }
 
+    // Main Run Tracker Loop
     function renderDetectionLoop() {
       if (!webcamRunning) return;
       canvasElement.width = video.videoWidth;
@@ -318,11 +335,9 @@
         lastVideoTime = video.currentTime;
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-        // Track Standard Objects
         const objects = objectDetector.detectForVideo(video, performance.now());
         drawObjects(objects.detections);
 
-        // Track Spatial Face Identifiers
         const faces = faceDetector.detectForVideo(video, performance.now());
         drawFaces(faces.detections);
       }
@@ -331,7 +346,7 @@
 
     function drawObjects(detections) {
       for (let detection of detections) {
-        if(detection.categories[0].categoryName === "person") continue; // Let Face Tracking handle individuals
+        if(detection.categories[0].categoryName === "person") continue; 
         const { originX: x, originY: y, width: w, height: h } = detection.boundingBox;
         renderBoundingBox(x, y, w, h, `${detection.categories[0].categoryName} (${Math.round(detection.categories[0].score * 100)}%)`, "#A8C7FA");
       }
@@ -341,17 +356,33 @@
       for (let face of detections) {
         const { originX: x, originY: y, width: w, height: h } = face.boundingBox;
         
-        // Spatial Check against DB Registered Coordinates (Simplified Local Proximity Resolution)
         let identityLabel = "Unknown Individual";
-        for(let key in registeredIdentities) {
-          let identity = registeredIdentities[key];
-          // Proximity tracking based on matching relative screen aspect configurations
-          if(Math.abs(identity.boxRatio - (w/h)) < 0.15) {
-             identityLabel = identity.name;
-             break;
+        let markerColor = "#E63946"; 
+        
+        if (face.keypoints) {
+          const liveVector = extractFaceVector(face, video.videoWidth, video.videoHeight);
+          let minimumDistance = Infinity;
+          let verifiedMatchName = "";
+          
+          for (let key in registeredIdentities) {
+            const candidate = registeredIdentities[key];
+            if (candidate.vector) {
+              const distance = calculateEuclideanDistance(liveVector, candidate.vector);
+              if (distance < minimumDistance) {
+                minimumDistance = distance;
+                verifiedMatchName = candidate.name;
+              }
+            }
+          }
+          
+          // Strict Structural Geometry Delta Validation Tolerance Bounds Threshold
+          if (minimumDistance < 0.16) {
+            identityLabel = verifiedMatchName;
+            markerColor = "#34A853"; 
           }
         }
-        renderBoundingBox(x, y, w, h, identityLabel, "#34A853");
+        
+        renderBoundingBox(x, y, w, h, identityLabel, markerColor);
       }
     }
 
@@ -370,7 +401,7 @@
       canvasCtx.fillText(label, x + 8, y - 9);
     }
 
-    // ════ ENROLLMENT ENGINE PROCESSING ════
+    // ════ ENROLLMENT REALTIME SCREEN TRACKING FRAMEWORK ════
     const enrollVideo = document.getElementById("enrollWebcam");
     const enrollCanvas = document.getElementById("enrollCanvas");
     const enrollCtx = enrollCanvas.getContext("2d");
@@ -384,56 +415,78 @@
         enrollVideo.srcObject = stream;
         enrollVideo.style.display = "block";
         enrollVideo.addEventListener("loadeddata", renderEnrollmentLoop);
-      } catch(e) { console.error("Enrollment sensor fault", e); }
+      } catch(e) { console.error("Enrollment optical feed hardware issue:", e); }
     }
 
     function renderEnrollmentLoop() {
       if (!webcamRunning || currentMode !== "enrollment") return;
       enrollCanvas.width = enrollVideo.videoWidth;
       enrollCanvas.height = enrollVideo.videoHeight;
-
       enrollCtx.clearRect(0, 0, enrollCanvas.width, enrollCanvas.height);
+      
       const faces = faceDetector.detectForVideo(enrollVideo, performance.now());
       
       if(faces.detections && faces.detections.length > 0) {
         const face = faces.detections[0];
-        activeFaceBoundingBox = face.boundingBox;
-        const { originX: x, originY: y, width: w, height: h } = activeFaceBoundingBox;
+        activeFaceMetadata = face; 
+        const { originX: x, originY: y, width: w, height: h } = face.boundingBox;
         
-        // Draw Target Selector Overlay Box
+        // Projected High Fidelity UI Scanner Framing Indicators
+        enrollCtx.strokeStyle = "#00F5D4"; 
+        enrollCtx.lineWidth = 4;
+        const cornerBracketSize = Math.min(w, h) * 0.22;
+        
+        // Top Left Bracket Bounds
+        enrollCtx.beginPath(); enrollCtx.moveTo(x, y + cornerBracketSize); enrollCtx.lineTo(x, y); enrollCtx.lineTo(x + cornerBracketSize, y); enrollCtx.stroke();
+        // Top Right Bracket Bounds
+        enrollCtx.beginPath(); enrollCtx.moveTo(x + w - cornerBracketSize, y); enrollCtx.lineTo(x + w, y); enrollCtx.lineTo(x + w, y + cornerBracketSize); enrollCtx.stroke();
+        // Bottom Left Bracket Bounds
+        enrollCtx.beginPath(); enrollCtx.moveTo(x, y + h - cornerBracketSize); enrollCtx.lineTo(x, y + h); enrollCtx.lineTo(x + cornerBracketSize, y + h); enrollCtx.stroke();
+        // Bottom Right Bracket Bounds
+        enrollCtx.beginPath(); enrollCtx.moveTo(x + w - cornerBracketSize, y + h); enrollCtx.lineTo(x + w, y + h); enrollCtx.lineTo(x + w, y + h - cornerBracketSize); enrollCtx.stroke();
+
+        // Laser Scan Intercept Bar
+        const clockTimeIndex = (performance.now() % 2000) / 2000;
+        const beamY = y + (h * clockTimeIndex);
+        
         enrollCtx.beginPath();
+        enrollCtx.strokeStyle = "rgba(0, 245, 212, 0.42)";
         enrollCtx.lineWidth = 2;
-        enrollCtx.strokeStyle = "#FFBA08";
-        enrollCtx.setLineDash([6, 6]);
-        enrollCtx.rect(x, y, w, h);
+        enrollCtx.moveTo(x, beamY);
+        enrollCtx.lineTo(x + w, beamY);
         enrollCtx.stroke();
-        enrollCtx.setLineDash([]);
+        
+        enrollCtx.fillStyle = "rgba(0, 245, 212, 0.04)";
+        enrollCtx.fillRect(x, y, w, h);
       } else {
-        activeFaceBoundingBox = null;
+        activeFaceMetadata = null;
       }
       requestAnimationFrame(renderEnrollmentLoop);
     }
 
-    // Save Tracked Parameters & Identity to Firebase
+    // Capture and Process Structural Matrix Data Payload
     captureBtn.addEventListener('click', async () => {
       const name = identityInput.value.trim();
-      if(!name) return alert("Please supply target identity designation name.");
-      if(!activeFaceBoundingBox) return alert("Position target face into camera scanner sight.");
+      if(!name) return alert("Please map an identity identifier description.");
+      if(!activeFaceMetadata) return alert("Align target face matrix directly inside the frame.");
+
+      const geometryVector = extractFaceVector(activeFaceMetadata, enrollVideo.videoWidth, enrollVideo.videoHeight);
+      if(!geometryVector) return alert("Biometric features failed clarity verification steps. Try again.");
 
       captureBtn.disabled = true;
-      captureBtn.innerText = "Synchronizing...";
+      captureBtn.innerText = "Synchronizing Framework Structural Vectors...";
 
-      const newFaceRef = push(ref(db, 'registered_faces'));
+      const newFaceRef = push(ref(db, 'biometric_profiles'));
       await set(newFaceRef, {
         name: name,
-        boxRatio: activeFaceBoundingBox.width / activeFaceBoundingBox.height,
+        vector: geometryVector,
         timestamp: serverTimestamp()
       });
 
       identityInput.value = "";
       captureBtn.disabled = false;
       captureBtn.innerText = "Commit Identity";
-      alert(`Identity profile "${name}" built successfully.`);
+      alert(`Biometric node verified & synced for individual: "${name}"`);
       switchView('detection');
     });
   </script>
