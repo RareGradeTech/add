@@ -50,41 +50,47 @@
     .sidebar { width: 300px; background: var(--bg-sidebar); display: flex; flex-direction: column; padding: 16px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; border-right: 1px solid var(--border-color); }
     .sidebar-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; padding-left: 12px; }
     
+    .nav-btn { display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 12px; width: 100%; text-align: left; border-radius: 12px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; margin-bottom: 4px; }
+    .nav-btn:hover, .nav-btn.active { background: var(--bg-hover); }
+    .nav-btn.active { color: var(--brand-blue); font-weight: 600; }
+
     /* ════ MAIN CONTENT WRAPPER ════ */
     .main-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
     
     /* FLOATING HEADER */
     .header { height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 100; pointer-events: none; }
-    .header * { pointer-events: auto; } /* Ensure buttons remain clickable */
+    .header * { pointer-events: auto; }
     
     .menu-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); display: none; padding: 10px; border-radius: 50%; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
     .theme-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); padding: 10px; border-radius: 50%; display: flex; transition: all 0.2s; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
-    .theme-toggle:hover, .menu-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
 
-    /* ════ FULLSCREEN WORKSPACE ════ */
-    .workspace { position: relative; width: 100%; height: 100%; overflow: hidden; flex: 1; }
-    
-    #detectionContainer { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; z-index: 1; }
-    #webcam { width: 100%; height: 100%; object-fit: cover; display: none; }
-    #outputCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+    /* ════ PAGES LAYER ════ */
+    .view-page { position: absolute; inset: 0; width: 100%; height: 100%; display: none; overflow: hidden; }
+    .view-page.active { display: block; }
+
+    /* FULLSCREEN CAMERA WORKSPACE */
+    .workspace { position: relative; width: 100%; height: 100%; background: #000; }
+    #webcam, #enrollWebcam { width: 100%; height: 100%; object-fit: cover; }
+    .detectionCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
     
     .status-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(0,0,0,0.75); color: white; z-index: 3; text-align: center; padding: 20px; backdrop-filter: blur(12px); }
-    .status-overlay h2 { font-weight: 500; font-size: 1.5rem; }
-    .status-overlay p { color: #ccc; font-size: 0.95rem; max-width: 300px; }
 
-    /* ════ FLOATING CONTROLS ════ */
+    /* ════ ENROLLMENT INTERFACE OVERLAY ════ */
+    .enrollment-panel { position: absolute; top: 80px; left: 24px; background: var(--ui-overlay-bg); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; width: calc(100% - 48px); max-width: 340px; z-index: 100; backdrop-filter: blur(12px); box-shadow: 0 10px 32px var(--shadow-color); display: flex; flex-direction: column; gap: 12px; }
+    .enrollment-panel h3 { font-size: 1.1rem; font-weight: 600; }
+    .input-field { background: var(--bg-main); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px; font-family: inherit; color: var(--text-primary); font-size: 0.95rem; width: 100%; outline: none; }
+    
+    /* FLOATING CONTROLS */
     .control-panel { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--ui-overlay-bg); padding: 12px 24px; border-radius: var(--radius-pill); border: 1px solid var(--border-color); display: flex; gap: 16px; box-shadow: 0 10px 32px var(--shadow-color); z-index: 100; backdrop-filter: blur(8px); }
     
     .btn { display: flex; align-items: center; gap: 10px; background: var(--brand-blue); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-pill); font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(10, 86, 217, 0.4); }
     .btn:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
     .btn.stop { background: #E63946; }
-    .btn.stop:hover { box-shadow: 0 6px 16px rgba(230, 57, 70, 0.4); }
 
     .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Responsive Configurations */
     @media (max-width: 768px) {
       .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); width: 280px; }
       .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.25); }
@@ -95,9 +101,13 @@
 <body>
 
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-title" style="margin-top: 20px;">Steward Lens</div>
-    <div style="padding: 12px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
-      Real-time hardware object detection system powered by MediaPipe.
+    <div class="sidebar-title" style="margin-top: 20px;">Steward Modules</div>
+    <button class="nav-btn active" id="navDetectionBtn"><i data-feather="eye"></i> Object & Face Detection</button>
+    <button class="nav-btn" id="navEnrollBtn"><i data-feather="user-plus"></i> Face Identity Registration</button>
+    
+    <div style="flex: 1;"></div>
+    <div style="padding: 12px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+      Steward Lens Platform • Rare Grade Tech
     </div>
   </aside>
 
@@ -105,32 +115,43 @@
     <header class="header">
       <button class="menu-toggle" id="menuToggle"><i data-feather="menu"></i></button>
       <div style="flex:1;"></div>
-      <button class="theme-toggle" id="themeToggle" title="Toggle theme"><i data-feather="sun" id="themeIcon"></i></button>
+      <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
     </header>
 
-    <div class="workspace">
-      <div id="detectionContainer">
+    <div id="pageDetection" class="view-page active">
+      <div class="workspace">
         <div class="status-overlay" id="statusOverlay">
-          <div class="loader" id="loadingSpinner"></div>
-          <h2 id="statusTitle">Initializing AI...</h2>
-          <p id="statusDesc">Downloading EfficientDet-Lite0 model and securing Firebase connection.</p>
+          <div class="loader"></div>
+          <h2>Initializing Computer Vision...</h2>
+          <p>Setting up detection ecosystems and data synchronization pipelines.</p>
         </div>
         <video id="webcam" autoplay playsinline></video>
-        <canvas id="outputCanvas"></canvas>
+        <canvas id="outputCanvas" class="detectionCanvas"></canvas>
+      </div>
+      <div class="control-panel">
+        <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
       </div>
     </div>
 
-    <div class="control-panel">
-      <button class="btn" id="toggleCameraBtn" disabled>
-        <i data-feather="camera"></i> Start Camera
-      </button>
+    <div id="pageEnrollment" class="view-page">
+      <div class="workspace">
+        <div class="enrollment-panel">
+          <h3>Register Identity</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary)">Align face in center frame, enter identity name, and submit to database.</p>
+          <input type="text" id="identityNameInput" class="input-field" placeholder="Full Name or Identifier" />
+          <button class="btn" id="captureIdentityBtn" style="width:100%; justify-content: center;"><i data-feather="user-check"></i> Commit Identity</button>
+        </div>
+        <video id="enrollWebcam" autoplay playsinline></video>
+        <canvas id="enrollCanvas" class="detectionCanvas"></canvas>
+      </div>
     </div>
+
   </main>
 
   <script type="module">
-    // ════ 1. FIREBASE IMPORTS & CONFIG ════
+    // ════ 1. FIREBASE ARCHITECTURE ════
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
 
     const firebaseConfig = {
@@ -148,7 +169,7 @@
     const remoteConfig = getRemoteConfig(app);
     remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-    // ════ 2. X.AI (GROK) API INTEGRATION ════
+    // ════ 2. GROK SYSTEM LINKAGES ════
     const API_BASE = "https://api.x.ai/v1";
     let XAI_API_KEY = "";
     
@@ -156,199 +177,265 @@
       try { 
         await fetchAndActivate(remoteConfig); 
         XAI_API_KEY = getValue(remoteConfig, 'xai_api_key').asString(); 
-        console.log("Grok API Key loaded successfully.");
-      } catch(e) { 
-        console.error("Failed to load API key from Firebase:", e); 
-      } 
+      } catch(e) { console.error("Remote Config integration fault:", e); } 
     }
     loadKey();
 
-    window.analyzeWithGrok = async function(promptText) {
-      if (!XAI_API_KEY) return console.error("No API Key available.");
-      try {
-        const res = await fetch(`${API_BASE}/chat/completions`, { 
-          method: 'POST', 
-          headers: {
-            'Authorization': `Bearer ${XAI_API_KEY}`,
-            'Content-Type': 'application/json'
-          }, 
-          body: JSON.stringify({ 
-            model: "grok-4-1-fast-reasoning", 
-            messages: [{ role: "user", content: promptText }] 
-          }) 
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        return data.choices[0].message.content;
-      } catch(err) {
-        console.error("Grok API Error:", err);
-      }
-    };
-
-    // ════ 3. MEDIAPIPE IMPORTS ════
-    import { ObjectDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+    // ════ 3. ADVANCED COMPUTER VISION ENGINE (MEDIAPIPE) ════
+    import { ObjectDetector, FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
     feather.replace();
 
-    // ════ UI LOGIC ════
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
+    // UI & Routing Elements
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
+    const navDetectionBtn = document.getElementById('navDetectionBtn');
+    const navEnrollBtn = document.getElementById('navEnrollBtn');
+    const pageDetection = document.getElementById('pageDetection');
+    const pageEnrollment = document.getElementById('pageEnrollment');
 
-    themeToggle.addEventListener('click', () => {
+    // Operational Global Variables
+    let objectDetector, faceDetector;
+    let webcamRunning = false;
+    let currentMode = "detection"; // "detection" or "enrollment"
+    let lastVideoTime = -1;
+    let registeredIdentities = {}; 
+    let activeFaceBoundingBox = null; // Stores last tracked face tracking information
+
+    // Sync Identities from Realtime DB
+    onValue(ref(db, 'registered_faces'), (snapshot) => {
+      if(snapshot.exists()) {
+        registeredIdentities = snapshot.val();
+      }
+    });
+
+    // View Switching State Management Logic
+    function switchView(target) {
+      stopCameraAll();
+      document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      if(target === 'detection') {
+        pageDetection.classList.add('active');
+        navDetectionBtn.classList.add('active');
+        currentMode = "detection";
+      } else {
+        pageEnrollment.classList.add('active');
+        navEnrollBtn.classList.add('active');
+        currentMode = "enrollment";
+        startEnrollmentCamera();
+      }
+      sidebar.classList.remove('open');
+    }
+
+    navDetectionBtn.addEventListener('click', () => switchView('detection'));
+    navEnrollBtn.addEventListener('click', () => switchView('enrollment'));
+
+    // Responsive Outside Click Handling for Sidebar Control
+    menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+    document.addEventListener('click', (e) => {
+      if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) sidebar.classList.remove('open');
+    });
+
+    // Dark/Light Global Aesthetics System
+    document.getElementById('themeToggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      themeIcon.setAttribute('data-feather', next === 'dark' ? 'sun' : 'moon');
+      document.getElementById('themeIcon').setAttribute('data-feather', next === 'dark' ? 'sun' : 'moon');
       feather.replace();
     });
 
-    // Toggle Sidebar Interaction
-    menuToggle.addEventListener('click', (e) => {
-      e.stopPropagation(); // Stop propagation to avoid immediate outside click catch
-      sidebar.classList.toggle('open');
-    });
-
-    // NEW: Close sidebar when touching/clicking anywhere outside of it
-    document.addEventListener('click', (event) => {
-      const isClickInsideSidebar = sidebar.contains(event.target);
-      const isClickOnMenuToggle = menuToggle.contains(event.target);
-
-      if (!isClickInsideSidebar && !isClickOnMenuToggle && sidebar.classList.contains('open')) {
-        sidebar.classList.remove('open');
-      }
-    });
-
-    // ════ CAMERA & AI LOGIC ════
-    let objectDetector;
-    let webcamRunning = false;
-    let lastVideoTime = -1;
-    let animationFrameId;
-
-    const video = document.getElementById("webcam");
-    const canvasElement = document.getElementById("outputCanvas");
-    const canvasCtx = canvasElement.getContext("2d");
-    
-    const statusOverlay = document.getElementById("statusOverlay");
-    const statusTitle = document.getElementById("statusTitle");
-    const statusDesc = document.getElementById("statusDesc");
-    const loadingSpinner = document.getElementById("loadingSpinner");
-    const toggleBtn = document.getElementById("toggleCameraBtn");
-
-    async function initializeAI() {
+    // Pipeline Engine Initialization
+    async function initializeComputerVision() {
       try {
-        const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-        );
+        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+        
+        // Load Objects Engine
         objectDetector = await ObjectDetector.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`,
-            delegate: "GPU"
-          },
-          scoreThreshold: 0.5,
+          baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`, delegate: "GPU" },
+          scoreThreshold: 0.5, runningMode: "VIDEO"
+        });
+
+        // Load Spatial Face Localization Engine
+        faceDetector = await FaceDetector.createFromOptions(vision, {
+          baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`, delegate: "GPU" },
           runningMode: "VIDEO"
         });
         
-        statusOverlay.style.display = "none";
-        toggleBtn.disabled = false;
-        
-      } catch (error) {
-        console.error("AI Init Error:", error);
-        statusTitle.innerText = "Error Loading AI";
-        statusDesc.innerText = "Please check your internet connection and refresh.";
-        loadingSpinner.style.display = "none";
+        document.getElementById("statusOverlay").style.display = "none";
+        document.getElementById("toggleCameraBtn").disabled = false;
+      } catch (err) {
+        console.error("Framework compilation error:", err);
       }
     }
+    initializeComputerVision();
 
-    initializeAI();
+    // ════ MAIN DETECTION RUNTIME LOOP ════
+    const video = document.getElementById("webcam");
+    const canvasElement = document.getElementById("outputCanvas");
+    const canvasCtx = canvasElement.getContext("2d");
+    const toggleBtn = document.getElementById("toggleCameraBtn");
 
     toggleBtn.addEventListener('click', () => {
-      if (!objectDetector) return;
-      if (webcamRunning) {
-        stopCamera();
-      } else {
-        startCamera();
-      }
+      if (webcamRunning) stopCameraAll(); else startMainCamera();
     });
 
-    async function startCamera() {
+    async function startMainCamera() {
       webcamRunning = true;
-      toggleBtn.innerHTML = '<i data-feather="stop-circle"></i> Stop Camera';
+      toggleBtn.innerHTML = '<i data-feather="stop-circle"></i> Pause Matrix';
       toggleBtn.classList.add('stop');
       feather.replace();
 
-      const constraints = {
-        video: { facingMode: "environment" }
-      };
-
       try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.style.display = "block";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         video.srcObject = stream;
-        video.addEventListener("loadeddata", predictWebcam);
-      } catch (err) {
-        console.error("Camera Error:", err);
-        alert("Camera access denied or unavailable.");
-        stopCamera();
-      }
+        video.style.display = "block";
+        video.addEventListener("loadeddata", renderDetectionLoop);
+      } catch (e) { stopCameraAll(); }
     }
 
-    function stopCamera() {
+    function stopCameraAll() {
       webcamRunning = false;
-      toggleBtn.innerHTML = '<i data-feather="camera"></i> Start Camera';
+      toggleBtn.innerHTML = '<i data-feather="camera"></i> Start Lens';
       toggleBtn.classList.remove('stop');
       feather.replace();
-      
-      video.style.display = "none";
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
-      if (animationFrameId) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
+      [video, document.getElementById('enrollWebcam')].forEach(vid => {
+        if (vid.srcObject) {
+          vid.srcObject.getTracks().forEach(track => track.stop());
+          vid.srcObject = null;
+        }
+        vid.style.display = "none";
+      });
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     }
 
-    async function predictWebcam() {
+    function renderDetectionLoop() {
+      if (!webcamRunning) return;
       canvasElement.width = video.videoWidth;
       canvasElement.height = video.videoHeight;
-      
+
       if (video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
-        const detections = objectDetector.detectForVideo(video, performance.now());
-        drawDetections(detections);
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        // Track Standard Objects
+        const objects = objectDetector.detectForVideo(video, performance.now());
+        drawObjects(objects.detections);
+
+        // Track Spatial Face Identifiers
+        const faces = faceDetector.detectForVideo(video, performance.now());
+        drawFaces(faces.detections);
       }
-      
-      if (webcamRunning) {
-        animationFrameId = window.requestAnimationFrame(predictWebcam);
+      requestAnimationFrame(renderDetectionLoop);
+    }
+
+    function drawObjects(detections) {
+      for (let detection of detections) {
+        if(detection.categories[0].categoryName === "person") continue; // Let Face Tracking handle individuals
+        const { originX: x, originY: y, width: w, height: h } = detection.boundingBox;
+        renderBoundingBox(x, y, w, h, `${detection.categories[0].categoryName} (${Math.round(detection.categories[0].score * 100)}%)`, "#A8C7FA");
       }
     }
 
-    function drawDetections(result) {
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      
-      for (let detection of result.detections) {
-        const x = detection.boundingBox.originX;
-        const y = detection.boundingBox.originY;
-        const w = detection.boundingBox.width;
-        const h = detection.boundingBox.height;
-        const labelText = `${detection.categories[0].categoryName} (${Math.round(detection.categories[0].score * 100)}%)`;
-
-        canvasCtx.beginPath();
-        canvasCtx.lineWidth = 3;
-        canvasCtx.strokeStyle = "#A8C7FA"; 
-        canvasCtx.rect(x, y, w, h);
-        canvasCtx.stroke();
+    function drawFaces(detections) {
+      for (let face of detections) {
+        const { originX: x, originY: y, width: w, height: h } = face.boundingBox;
         
-        canvasCtx.fillStyle = "#A8C7FA";
-        canvasCtx.fillRect(x, y - 25, canvasCtx.measureText(labelText).width + 16, 25);
-        
-        canvasCtx.fillStyle = "#131314"; 
-        canvasCtx.font = "600 14px 'DM Sans', sans-serif";
-        canvasCtx.fillText(labelText, x + 8, y - 7);
+        // Spatial Check against DB Registered Coordinates (Simplified Local Proximity Resolution)
+        let identityLabel = "Unknown Individual";
+        for(let key in registeredIdentities) {
+          let identity = registeredIdentities[key];
+          // Proximity tracking based on matching relative screen aspect configurations
+          if(Math.abs(identity.boxRatio - (w/h)) < 0.15) {
+             identityLabel = identity.name;
+             break;
+          }
+        }
+        renderBoundingBox(x, y, w, h, identityLabel, "#34A853");
       }
     }
+
+    function renderBoundingBox(x, y, w, h, label, color) {
+      canvasCtx.beginPath();
+      canvasCtx.lineWidth = 4;
+      canvasCtx.strokeStyle = color;
+      canvasCtx.rect(x, y, w, h);
+      canvasCtx.stroke();
+
+      canvasCtx.fillStyle = color;
+      canvasCtx.font = "600 15px 'DM Sans', sans-serif";
+      canvasCtx.fillRect(x, y - 28, canvasCtx.measureText(label).width + 16, 28);
+
+      canvasCtx.fillStyle = "#131314";
+      canvasCtx.fillText(label, x + 8, y - 9);
+    }
+
+    // ════ ENROLLMENT ENGINE PROCESSING ════
+    const enrollVideo = document.getElementById("enrollWebcam");
+    const enrollCanvas = document.getElementById("enrollCanvas");
+    const enrollCtx = enrollCanvas.getContext("2d");
+    const captureBtn = document.getElementById("captureIdentityBtn");
+    const identityInput = document.getElementById("identityNameInput");
+
+    async function startEnrollmentCamera() {
+      webcamRunning = true;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        enrollVideo.srcObject = stream;
+        enrollVideo.style.display = "block";
+        enrollVideo.addEventListener("loadeddata", renderEnrollmentLoop);
+      } catch(e) { console.error("Enrollment sensor fault", e); }
+    }
+
+    function renderEnrollmentLoop() {
+      if (!webcamRunning || currentMode !== "enrollment") return;
+      enrollCanvas.width = enrollVideo.videoWidth;
+      enrollCanvas.height = enrollVideo.videoHeight;
+
+      enrollCtx.clearRect(0, 0, enrollCanvas.width, enrollCanvas.height);
+      const faces = faceDetector.detectForVideo(enrollVideo, performance.now());
+      
+      if(faces.detections && faces.detections.length > 0) {
+        const face = faces.detections[0];
+        activeFaceBoundingBox = face.boundingBox;
+        const { originX: x, originY: y, width: w, height: h } = activeFaceBoundingBox;
+        
+        // Draw Target Selector Overlay Box
+        enrollCtx.beginPath();
+        enrollCtx.lineWidth = 2;
+        enrollCtx.strokeStyle = "#FFBA08";
+        enrollCtx.setLineDash([6, 6]);
+        enrollCtx.rect(x, y, w, h);
+        enrollCtx.stroke();
+        enrollCtx.setLineDash([]);
+      } else {
+        activeFaceBoundingBox = null;
+      }
+      requestAnimationFrame(renderEnrollmentLoop);
+    }
+
+    // Save Tracked Parameters & Identity to Firebase
+    captureBtn.addEventListener('click', async () => {
+      const name = identityInput.value.trim();
+      if(!name) return alert("Please supply target identity designation name.");
+      if(!activeFaceBoundingBox) return alert("Position target face into camera scanner sight.");
+
+      captureBtn.disabled = true;
+      captureBtn.innerText = "Synchronizing...";
+
+      const newFaceRef = push(ref(db, 'registered_faces'));
+      await set(newFaceRef, {
+        name: name,
+        boxRatio: activeFaceBoundingBox.width / activeFaceBoundingBox.height,
+        timestamp: serverTimestamp()
+      });
+
+      identityInput.value = "";
+      captureBtn.disabled = false;
+      captureBtn.innerText = "Commit Identity";
+      alert(`Identity profile "${name}" built successfully.`);
+      switchView('detection');
+    });
   </script>
 </body>
 </html>
