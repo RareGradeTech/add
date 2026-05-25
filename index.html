@@ -80,7 +80,7 @@
     }
     .theme-toggle:active { transform: scale(0.9); }
 
-    /* WORKSPACE (CAMERA PANEL) */
+    /* WORKSPACE */
     .workspace { 
         position: relative; 
         width: 100%; 
@@ -91,7 +91,6 @@
         justify-content: center;
     }
     
-    /* object-fit: contain stops the zooming/cropping distortion */
     #webcam, .detectionCanvas { 
         width: 100%; 
         height: 100%; 
@@ -158,7 +157,7 @@
         transition: all 0.2s; 
         white-space: nowrap; 
     }
-    [data-theme="dark"] .btn { color: #131314; } /* Dark mode highly-visible dark text on bright pill */
+    [data-theme="dark"] .btn { color: #131314; } 
     .btn:active { transform: scale(0.98); opacity: 0.9; }
     .btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
     .btn.stop { background: #E63946; color: white; }
@@ -186,7 +185,7 @@
   <header class="header">
     <div class="brand">
       <h1>Steward Lens</h1>
-      <span>Vision UI</span>
+      <span>Traffic & Vision</span>
     </div>
     <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
   </header>
@@ -194,20 +193,19 @@
   <main class="workspace">
     <div class="status-overlay" id="statusOverlay">
       <div class="loader"></div>
-      <h2>Initializing Core Engines...</h2>
-      <p>Loading local computer vision matrices and synchronizing secure profiles.</p>
+      <h2>Initializing Vision Matrices...</h2>
+      <p>Synchronizing local camera tracking modules and safety arrays.</p>
     </div>
     <video id="webcam" autoplay playsinline></video>
     <canvas id="outputCanvas" class="detectionCanvas"></canvas>
   </main>
   
   <div class="control-panel">
-    <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
+    <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Tracking</button>
     <a href="enroll.html" class="nav-link-btn" title="Register Identity"><i data-feather="user-plus"></i></a>
   </div>
 
   <script type="module">
-    // ════ FIREBASE CONFIG ════
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -224,7 +222,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ════ MEDIAPIPE IMPORTS ════
     import { ObjectDetector, FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
     feather.replace();
 
@@ -233,12 +230,10 @@
     let lastVideoTime = -1;
     let registeredIdentities = {}; 
 
-    // Sync DB Profiles
     onValue(ref(db, 'biometric_profiles'), (snapshot) => {
       if(snapshot.exists()) registeredIdentities = snapshot.val();
     });
 
-    // Theme Customizer
     document.getElementById('themeToggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
@@ -246,13 +241,12 @@
       feather.replace();
     });
 
-    // Initialize Vision AI
     async function initializeComputerVision() {
       try {
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
         objectDetector = await ObjectDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`, delegate: "GPU" },
-          scoreThreshold: 0.5, runningMode: "VIDEO"
+          scoreThreshold: 0.45, runningMode: "VIDEO"
         });
         faceDetector = await FaceDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`, delegate: "GPU" },
@@ -264,7 +258,6 @@
     }
     initializeComputerVision();
 
-    // Biometric Parsing
     function extractFaceVector(face, wWidth, wHeight) {
       if (!face || !face.keypoints || face.keypoints.length === 0) return null;
       const { originX, originY, width, height } = face.boundingBox;
@@ -287,7 +280,6 @@
       return Math.sqrt(sum);
     }
 
-    // Camera Infrastructure Lifecycle
     const video = document.getElementById("webcam");
     const canvasElement = document.getElementById("outputCanvas");
     const canvasCtx = canvasElement.getContext("2d");
@@ -299,7 +291,7 @@
 
     async function startCamera() {
       webcamRunning = true;
-      toggleBtn.innerHTML = '<i data-feather="stop-circle"></i> Pause Matrix';
+      toggleBtn.innerHTML = '<i data-feather="stop-circle"></i> Pause Stream';
       toggleBtn.classList.add('stop'); feather.replace();
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -310,7 +302,7 @@
 
     function stopCamera() {
       webcamRunning = false;
-      toggleBtn.innerHTML = '<i data-feather="camera"></i> Start Lens';
+      toggleBtn.innerHTML = '<i data-feather="camera"></i> Start Tracking';
       toggleBtn.classList.remove('stop'); feather.replace();
       if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
@@ -319,7 +311,6 @@
     function renderLoop() {
       if (!webcamRunning) return;
       
-      // Keep viewport mapping consistent dynamically
       canvasElement.width = video.videoWidth; 
       canvasElement.height = video.videoHeight;
       
@@ -330,11 +321,33 @@
         const objects = objectDetector.detectForVideo(video, performance.now());
         const faces = faceDetector.detectForVideo(video, performance.now());
         
+        // Handle Object/Vehicle Tracking
         for (let d of objects.detections) {
-          if(d.categories[0].categoryName === "person") continue; 
-          renderBox(d.boundingBox, `${d.categories[0].categoryName} (${Math.round(d.categories[0].score * 100)}%)`, "#A8C7FA");
+          const category = d.categories[0].categoryName;
+          const score = Math.round(d.categories[0].score * 100);
+          
+          if (category === "person") continue; 
+          
+          // Map custom behaviors specifically for vehicles passing by
+          if (["car", "truck", "bus", "motorcycle"].includes(category)) {
+            // Label vehicle bounds & simulate an active License Plate Anchor Zone
+            renderBox(d.boundingBox, `🚙 ${category.toUpperCase()} (${score}%)`, "#00E676");
+            
+            // Draw a proxy focus box exactly where front/back registration plates usually sit
+            const plateBox = {
+              originX: d.boundingBox.originX + (d.boundingBox.width * 0.25),
+              originY: d.boundingBox.originY + (d.boundingBox.height * 0.65),
+              width: d.boundingBox.width * 0.5,
+              height: d.boundingBox.height * 0.15
+            };
+            renderPlateAnchor(plateBox, "SCANNING PLATE...");
+          } else {
+            // General background objects
+            renderBox(d.boundingBox, `${category} (${score}%)`, "#A8C7FA");
+          }
         }
         
+        // Handle Facial Profile Tracking
         for (let f of faces.detections) {
           let label = "Unknown Individual", color = "#E63946"; 
           if (f.keypoints) {
@@ -359,6 +372,15 @@
       canvasCtx.fillStyle = color; canvasCtx.font = "600 15px 'DM Sans', sans-serif";
       canvasCtx.fillRect(x, y - 28, canvasCtx.measureText(label).width + 16, 28);
       canvasCtx.fillStyle = "#131314"; canvasCtx.fillText(label, x + 8, y - 9);
+    }
+
+    function renderPlateAnchor(box, label) {
+      const { originX: x, originY: y, width: w, height: h } = box;
+      // Secondary targeting indicator for plate scanning zones
+      canvasCtx.setLineDash([6, 4]);
+      canvasCtx.beginPath(); canvasCtx.lineWidth = 2; canvasCtx.strokeStyle = "#FFFF00";
+      canvasCtx.rect(x, y, w, h); canvasCtx.stroke();
+      canvasCtx.setLineDash([]); // Reset styling
     }
   </script>
 </body>
