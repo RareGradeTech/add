@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#131314" />
-  <title>Steward Lens | Rare Grade Tech</title>
+  <title>Steward Lens | Traffic & Intelligence</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/feather-icons"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <style>
     :root {
@@ -185,7 +187,7 @@
   <header class="header">
     <div class="brand">
       <h1>Steward Lens</h1>
-      <span>Traffic & Vision</span>
+      <span>Traffic ANPR Suite</span>
     </div>
     <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
   </header>
@@ -193,8 +195,8 @@
   <main class="workspace">
     <div class="status-overlay" id="statusOverlay">
       <div class="loader"></div>
-      <h2>Initializing Vision Matrices...</h2>
-      <p>Synchronizing local camera tracking modules and safety arrays.</p>
+      <h2>Initializing Core Vision...</h2>
+      <p>Synchronizing local neural processing engines and text tracking models.</p>
     </div>
     <video id="webcam" autoplay playsinline></video>
     <canvas id="outputCanvas" class="detectionCanvas"></canvas>
@@ -229,6 +231,13 @@
     let webcamRunning = false;
     let lastVideoTime = -1;
     let registeredIdentities = {}; 
+
+    // OCR Memory Management State Variables
+    const ocrCanvas = document.createElement('canvas');
+    const ocrCtx = ocrCanvas.getContext('2d');
+    let activeLicensePlate = "ANALYZING...";
+    let isOcrBusy = false;
+    let lastOcrTimestamp = 0;
 
     onValue(ref(db, 'biometric_profiles'), (snapshot) => {
       if(snapshot.exists()) registeredIdentities = snapshot.val();
@@ -321,33 +330,53 @@
         const objects = objectDetector.detectForVideo(video, performance.now());
         const faces = faceDetector.detectForVideo(video, performance.now());
         
-        // Handle Object/Vehicle Tracking
+        // Process Tracking Bounds
         for (let d of objects.detections) {
           const category = d.categories[0].categoryName;
           const score = Math.round(d.categories[0].score * 100);
           
           if (category === "person") continue; 
           
-          // Map custom behaviors specifically for vehicles passing by
           if (["car", "truck", "bus", "motorcycle"].includes(category)) {
-            // Label vehicle bounds & simulate an active License Plate Anchor Zone
             renderBox(d.boundingBox, `🚙 ${category.toUpperCase()} (${score}%)`, "#00E676");
             
-            // Draw a proxy focus box exactly where front/back registration plates usually sit
-            const plateBox = {
-              originX: d.boundingBox.originX + (d.boundingBox.width * 0.25),
-              originY: d.boundingBox.originY + (d.boundingBox.height * 0.65),
-              width: d.boundingBox.width * 0.5,
-              height: d.boundingBox.height * 0.15
-            };
-            renderPlateAnchor(plateBox, "SCANNING PLATE...");
+            // Calculate a relative license plate bounding target relative to vehicle location
+            const targetX = Math.max(0, d.boundingBox.originX + (d.boundingBox.width * 0.20));
+            const targetY = Math.max(0, d.boundingBox.originY + (d.boundingBox.height * 0.60));
+            const targetW = Math.min(video.videoWidth - targetX, d.boundingBox.width * 0.60);
+            const targetH = Math.min(video.videoHeight - targetY, d.boundingBox.height * 0.25);
+
+            const plateBox = { originX: targetX, originY: targetY, width: targetW, height: targetH };
+
+            // Process OCR asynchronous updates dynamically to prevent interface lockups
+            if (performance.now() - lastOcrTimestamp > 1000 && !isOcrBusy && targetW > 30 && targetH > 15) {
+              isOcrBusy = true;
+              lastOcrTimestamp = performance.now();
+
+              // Size the processing cache canvas exactly to match the passing registration matrix
+              ocrCanvas.width = targetW;
+              ocrCanvas.height = targetH;
+              ocrCtx.drawImage(video, targetX, targetY, targetW, targetH, 0, 0, targetW, targetH);
+
+              // Use high contrast optimization character parsing
+              Tesseract.recognize(ocrCanvas, 'eng', {
+                parameters: { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ' }
+              }).then(({ data: { text } }) => {
+                const cleanStr = text.trim().replace(/[^A-Z0-9- ]/g, "");
+                if (cleanStr.length >= 3) {
+                  activeLicensePlate = cleanStr;
+                }
+                isOcrBusy = false;
+              }).catch(() => { isOcrBusy = false; });
+            }
+
+            // Directly overlays the live deciphered text strings onto the license box viewport
+            renderPlateAnchor(plateBox, `PLATE: ${activeLicensePlate}`);
           } else {
-            // General background objects
             renderBox(d.boundingBox, `${category} (${score}%)`, "#A8C7FA");
           }
         }
         
-        // Handle Facial Profile Tracking
         for (let f of faces.detections) {
           let label = "Unknown Individual", color = "#E63946"; 
           if (f.keypoints) {
@@ -376,11 +405,13 @@
 
     function renderPlateAnchor(box, label) {
       const { originX: x, originY: y, width: w, height: h } = box;
-      // Secondary targeting indicator for plate scanning zones
-      canvasCtx.setLineDash([6, 4]);
-      canvasCtx.beginPath(); canvasCtx.lineWidth = 2; canvasCtx.strokeStyle = "#FFFF00";
+      canvasCtx.beginPath(); canvasCtx.lineWidth = 3; canvasCtx.strokeStyle = "#FFFF00";
       canvasCtx.rect(x, y, w, h); canvasCtx.stroke();
-      canvasCtx.setLineDash([]); // Reset styling
+
+      // Label background for clear alphanumeric legibility outside
+      canvasCtx.fillStyle = "#FFFF00"; canvasCtx.font = "700 13px 'DM Sans', sans-serif";
+      canvasCtx.fillRect(x, y - 22, canvasCtx.measureText(label).width + 12, 22);
+      canvasCtx.fillStyle = "#000000"; canvasCtx.fillText(label, x + 6, y - 6);
     }
   </script>
 </body>
