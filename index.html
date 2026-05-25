@@ -13,91 +13,198 @@
 
   <style>
     :root {
-        --bg-main: #FFFFFF; --bg-sidebar: #F0F4F9; --bg-hover: #E1E5EA;
-        --text-primary: #1F1F1F; --text-secondary: #444746; --text-muted: #8E918F;
-        --border-color: #E3E3E3; --brand-blue: #0A56D9; --shadow-color: rgba(0,0,0,0.08);
-        --radius-pill: 32px; --radius-card: 24px; --ui-overlay-bg: rgba(255, 255, 255, 0.85);
+        --bg-main: #F8F9FA; 
+        --bg-card: rgba(255, 255, 255, 0.85);
+        --text-primary: #1F1F1F; 
+        --text-secondary: #444746; 
+        --text-muted: #8E918F;
+        --border-color: rgba(0, 0, 0, 0.08); 
+        --brand-blue: #0A56D9; 
+        --shadow-color: rgba(0,0,0,0.06);
+        --radius-pill: 32px;
     }
     [data-theme="dark"] {
-        --bg-main: #131314; --bg-sidebar: #1E1F20; --bg-hover: #333537;
-        --text-primary: #E3E3E3; --text-secondary: #C4C7C5; --text-muted: #8E918F;
-        --border-color: #444746; --brand-blue: #A8C7FA; --shadow-color: rgba(0,0,0,0.3);
-        --ui-overlay-bg: rgba(30, 31, 32, 0.85);
+        --bg-main: #0F0F10; 
+        --bg-card: rgba(30, 31, 32, 0.85);
+        --text-primary: #E3E3E3; 
+        --text-secondary: #C4C7C5; 
+        --text-muted: #8E918F;
+        --border-color: rgba(255, 255, 255, 0.08); 
+        --brand-blue: #A8C7FA; 
+        --shadow-color: rgba(0,0,0,0.4);
     }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg-main); color: var(--text-primary); height: 100svh; display: flex; overflow: hidden; transition: background 0.3s ease, color 0.3s ease; }
+    body { 
+        font-family: 'DM Sans', sans-serif; 
+        background: var(--bg-main); 
+        color: var(--text-primary); 
+        height: 100svh; 
+        display: flex; 
+        flex-direction: column;
+        overflow: hidden; 
+        transition: background 0.3s ease, color 0.3s ease; 
+    }
 
-    /* SIDEBAR */
-    .sidebar { width: 300px; background: var(--bg-sidebar); display: flex; flex-direction: column; padding: 16px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; border-right: 1px solid var(--border-color); }
-    .sidebar-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; padding-left: 12px; }
-    .nav-btn { display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 12px; width: 100%; text-align: left; border-radius: 12px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; margin-bottom: 4px; text-decoration: none; }
-    .nav-btn:hover, .nav-btn.active { background: var(--bg-hover); }
-    .nav-btn.active { color: var(--brand-blue); font-weight: 600; }
+    /* HEADER */
+    .header { 
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        height: 56px; 
+        padding: 0 16px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        z-index: 100; 
+        background: var(--bg-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 24px var(--shadow-color);
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+    .brand span { font-size: 0.75rem; color: var(--text-muted); background: var(--border-color); padding: 2px 6px; border-radius: 6px; }
+    
+    .theme-toggle { 
+        background: none; 
+        border: none; 
+        cursor: pointer; 
+        color: var(--text-secondary); 
+        padding: 8px; 
+        display: flex; 
+        transition: transform 0.2s;
+    }
+    .theme-toggle:active { transform: scale(0.9); }
 
-    /* HEADER & WRAPPER */
-    .main-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
-    .header { height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 100; pointer-events: none; }
-    .header * { pointer-events: auto; }
-    .menu-toggle, .theme-toggle { background: var(--ui-overlay-bg); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-secondary); padding: 10px; border-radius: 50%; display: flex; transition: all 0.2s; backdrop-filter: blur(8px); box-shadow: 0 4px 12px var(--shadow-color); }
-    .menu-toggle { display: none; }
+    /* WORKSPACE (CAMERA PANEL) */
+    .workspace { 
+        position: relative; 
+        width: 100%; 
+        flex: 1;
+        background: #000; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* object-fit: contain stops the zooming/cropping distortion */
+    #webcam, .detectionCanvas { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: contain; 
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .detectionCanvas { z-index: 2; pointer-events: none; }
 
-    /* WORKSPACE */
-    .workspace { position: relative; width: 100%; height: 100%; background: #000; }
-    #webcam { width: 100%; height: 100%; object-fit: cover; }
-    .detectionCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
-    .status-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(0,0,0,0.85); color: white; z-index: 3; text-align: center; padding: 20px; backdrop-filter: blur(12px); }
+    .status-overlay { 
+        position: absolute; 
+        inset: 0; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 16px; 
+        background: rgba(15, 15, 16, 0.95); 
+        color: white; 
+        z-index: 3; 
+        text-align: center; 
+        padding: 24px; 
+        backdrop-filter: blur(20px); 
+        -webkit-backdrop-filter: blur(20px);
+    }
+    .status-overlay h2 { font-size: 1.2rem; font-weight: 600; }
+    .status-overlay p { font-size: 0.85rem; color: #8E918F; max-width: 280px; line-height: 1.4; }
 
     /* CONTROLS */
-    .control-panel { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--ui-overlay-bg); padding: 12px 24px; border-radius: var(--radius-pill); border: 1px solid var(--border-color); display: flex; gap: 16px; box-shadow: 0 10px 32px var(--shadow-color); z-index: 100; backdrop-filter: blur(8px); }
-    .btn { display: flex; align-items: center; gap: 10px; background: var(--brand-blue); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-pill); font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(10, 86, 217, 0.4); }
-    .btn:disabled { background: var(--text-muted); cursor: not-allowed; }
-    .btn.stop { background: #E63946; }
-
-    .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); width: 280px; }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.25); }
-      .menu-toggle { display: block; }
+    .control-panel { 
+        position: absolute; 
+        bottom: calc(24px + env(safe-area-inset-bottom)); 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: var(--bg-card); 
+        padding: 8px; 
+        border-radius: var(--radius-pill); 
+        border: 1px solid var(--border-color); 
+        display: flex; 
+        gap: 8px; 
+        box-shadow: 0 12px 32px var(--shadow-color); 
+        z-index: 100; 
+        backdrop-filter: blur(12px); 
+        -webkit-backdrop-filter: blur(12px);
+        width: calc(100% - 32px);
+        max-width: 340px;
     }
+    .btn { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 8px; 
+        background: var(--brand-blue); 
+        color: #131314; 
+        border: none; 
+        padding: 14px; 
+        flex: 1;
+        border-radius: var(--radius-pill); 
+        font-family: inherit; 
+        font-size: 0.95rem; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        white-space: nowrap; 
+    }
+    [data-theme="dark"] .btn { color: #131314; } /* Dark mode highly-visible dark text on bright pill */
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+    .btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+    .btn.stop { background: #E63946; color: white; }
+    
+    .nav-link-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--border-color);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .nav-link-btn:hover { background: var(--text-muted); }
+
+    .loader { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.2); border-radius: 50%; border-top-color: white; animation: spin 0.8s infinite linear; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-title" style="margin-top: 20px;">Steward Modules</div>
-    <a href="index.html" class="nav-btn active"><i data-feather="eye"></i> Object & Face Detection</a>
-    <a href="enroll.html" class="nav-btn"><i data-feather="user-plus"></i> Face Identity Registration</a>
-    
-    <div style="flex: 1;"></div>
-    <div style="padding: 12px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
-      Steward Lens Platform • Rare Grade Tech
+  <header class="header">
+    <div class="brand">
+      <h1>Steward Lens</h1>
+      <span>Vision UI</span>
     </div>
-  </aside>
+    <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
+  </header>
 
-  <main class="main-wrapper">
-    <header class="header">
-      <button class="menu-toggle" id="menuToggle"><i data-feather="menu"></i></button>
-      <div style="flex:1;"></div>
-      <button class="theme-toggle" id="themeToggle"><i data-feather="sun" id="themeIcon"></i></button>
-    </header>
-
-    <div class="workspace">
-      <div class="status-overlay" id="statusOverlay">
-        <div class="loader"></div>
-        <h2>Initializing Biometric Engines...</h2>
-        <p>Compiling computer vision models and local verification matrix systems.</p>
-      </div>
-      <video id="webcam" autoplay playsinline></video>
-      <canvas id="outputCanvas" class="detectionCanvas"></canvas>
+  <main class="workspace">
+    <div class="status-overlay" id="statusOverlay">
+      <div class="loader"></div>
+      <h2>Initializing Core Engines...</h2>
+      <p>Loading local computer vision matrices and synchronizing secure profiles.</p>
     </div>
-    
-    <div class="control-panel">
-      <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
-    </div>
+    <video id="webcam" autoplay playsinline></video>
+    <canvas id="outputCanvas" class="detectionCanvas"></canvas>
   </main>
+  
+  <div class="control-panel">
+    <button class="btn" id="toggleCameraBtn" disabled><i data-feather="camera"></i> Start Lens</button>
+    <a href="enroll.html" class="nav-link-btn" title="Register Identity"><i data-feather="user-plus"></i></a>
+  </div>
 
   <script type="module">
     // ════ FIREBASE CONFIG ════
@@ -121,8 +228,6 @@
     import { ObjectDetector, FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
     feather.replace();
 
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
     let objectDetector, faceDetector;
     let webcamRunning = false;
     let lastVideoTime = -1;
@@ -133,12 +238,7 @@
       if(snapshot.exists()) registeredIdentities = snapshot.val();
     });
 
-    // Sidebar & Theme Handling
-    menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
-    document.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) sidebar.classList.remove('open');
-    });
-
+    // Theme Customizer
     document.getElementById('themeToggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
@@ -164,7 +264,7 @@
     }
     initializeComputerVision();
 
-    // Biometric Logic
+    // Biometric Parsing
     function extractFaceVector(face, wWidth, wHeight) {
       if (!face || !face.keypoints || face.keypoints.length === 0) return null;
       const { originX, originY, width, height } = face.boundingBox;
@@ -187,10 +287,10 @@
       return Math.sqrt(sum);
     }
 
-    // Camera Lifecycle
+    // Camera Infrastructure Lifecycle
     const video = document.getElementById("webcam");
-    const canvasCtx = document.getElementById("outputCanvas").getContext("2d");
     const canvasElement = document.getElementById("outputCanvas");
+    const canvasCtx = canvasElement.getContext("2d");
     const toggleBtn = document.getElementById("toggleCameraBtn");
 
     toggleBtn.addEventListener('click', () => {
@@ -218,7 +318,11 @@
 
     function renderLoop() {
       if (!webcamRunning) return;
-      canvasElement.width = video.videoWidth; canvasElement.height = video.videoHeight;
+      
+      // Keep viewport mapping consistent dynamically
+      canvasElement.width = video.videoWidth; 
+      canvasElement.height = video.videoHeight;
+      
       if (video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
